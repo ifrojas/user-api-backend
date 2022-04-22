@@ -14,7 +14,7 @@ const app = express()
 const exampleMiddleware = require('./exampleMiddleware')
 app.use(exampleMiddleware)
 
-app.use(cors)
+app.use(cors())
 
 app.use(express.json())
 
