@@ -1,1 +1,9 @@
-GET  http://localhost:3001/api/users/2
+GET  http://localhost:3001/api/users/626367f7f37193b18f3ed1c4
+
+###
+
+GET  http://localhost:3001/api/users/626367f7f37193b18f3ed1c3
+
+###
+
+GET  http://localhost:3001/api/users/626367f7f37193b18f3ed1c

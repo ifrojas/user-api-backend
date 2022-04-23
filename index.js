@@ -7,9 +7,12 @@
 // })
 
 // Use Express
+require('dotenv').config()
+require('./mongo')
 const express = require('express')
 const cors = require('cors')
 const app = express()
+const User = require('./models/User')
 
 const exampleMiddleware = require('./exampleMiddleware')
 app.use(exampleMiddleware)
@@ -18,47 +21,52 @@ app.use(cors())
 
 app.use(express.json())
 
-let users = [
-  {
-    id: 1,
-    user: 'ifrojas',
-    password: '1234',
-    name: 'Ivan',
-    surname: 'Rojas'
-  },
-  {
-    id: 2,
-    user: 'maedi',
-    password: '1234',
-    name: 'Maria',
-    surname: 'Caicedo'
-  }
-]
+const users = []
 
 app.get('/', (request, response) => {
-  response.send('<h1>HI!!!</h1>')
+  response.send('<h1>HI IFROJAS DEV!!!</h1>')
 })
 
 app.get('/api/users', (request, response) => {
-  response.json(users)
+  User.find({}).then(users => {
+    response.json(users)
+  }).catch(err => {
+    console.error(err)
+  })
 })
 
-app.get('/api/users/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const user = users.find(user => user.id === id)
-  if (user) {
-    response.json(user)
-  } else {
-    response.status(404).json({
-      error: 'Elemento no encontrado'
-    })
-  }
+app.get('/api/users/:id', (request, response, next) => {
+  const { id } = request.params
+
+  User.findById(id).then(findUser => {
+    if (findUser) {
+      response.json(findUser)
+    } else {
+      response.status(404).json({
+        error: 'Elemento no encontrado'
+      })
+    }
+  }).catch(err => {
+    next(err)
+  })
 })
 
-app.delete('/api/users/:id', (request, response) => {
-  const id = Number(request.params.id)
-  users = users.filter(user => user.id !== id)
-  response.status(204).end()
+app.delete('/api/users/:id', (request, response, next) => {
+  const { id } = request.params
+
+  User.findByIdAndRemove(id).then(deleteUser => {
+    if (deleteUser) {
+      response.status(202).json({
+        action: 'Elemento eliminado'
+      })
+    } else {
+      response.status(404).json({
+        error: 'Usuario no encontrado'
+      })
+    }
+  }).catch(err => {
+    next(err)
+  })
 })
 
 app.post('/api/users', (request, response) => {
@@ -69,18 +77,33 @@ app.post('/api/users', (request, response) => {
     })
   }
 
-  const ids = users.map(user => user.id)
-  const maxId = Math.max(...ids)
-  const newUser = {
-    id: maxId + 1,
+  const newUser = new User({
     user: user.user,
     password: user.password,
     name: user.name,
     surname: user.surname
-  }
+  })
 
-  users = [...users, newUser]
-  response.status(201).json(newUser)
+  newUser.save()
+    .then(saveUser => {
+      response.status(201).json(saveUser)
+    }).catch(err => {
+      console.error(err)
+    })
+})
+
+// Middleware control error
+app.use((error, request, response, next) => {
+  console.log(error)
+  if (error.name === 'CastError') {
+    response.status(400).json({
+      error: 'elemento con formato no valido'
+    })
+  } else {
+    response.status(400).json({
+      error: 'Error de datos'
+    })
+  }
 })
 
 app.use((request, response) => {
@@ -89,7 +112,7 @@ app.use((request, response) => {
   })
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`API SERVER PORT ${PORT}`)
 })
