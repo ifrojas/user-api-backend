@@ -1,9 +1,9 @@
-PUT http://localhost:3001/api/users/6264923373879bf2cb9f2e1d
+PUT http://localhost:3001/api/users/6264aec7c7d8bc1af1dcfc43
 Content-Type: application/json
 
  {
         "user": "srojas",
         "password": "1234",
-        "name": "Sergio",
+        "name": "Sergioo",
         "surname": "Rojas"
 }
