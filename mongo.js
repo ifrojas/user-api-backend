@@ -8,26 +8,6 @@ mongoose.connect(connectionString)
     console.error(err)
   })
 
-// ----------------------------Find Data--------------------------
-// User.find({}).then(result => {
-//   console.log(result)
-//   mongoose.connection.close()
-// }).catch(err => {
-//   console.error(err)
-// })
-
-// ----------------------------Create Data--------------------------
-// const user = new User({
-//   user: 'srojas',
-//   password: '1234',
-//   name: 'Sergio',
-//   surname: 'Rojas'
-// })
-
-// user.save()
-//   .then(result => {
-//     console.log(result)
-//     mongoose.connection.close()
-//   }).catch(err => {
-//     console.error(err)
-//   })
+process.on('uncaughtException', () => {
+  mongoose.connection.close()
+})

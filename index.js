@@ -15,13 +15,17 @@ const app = express()
 const User = require('./models/User')
 
 const exampleMiddleware = require('./exampleMiddleware')
+const notFound = require('./middleware/notFound')
+const handleErrors = require('./middleware/handleErrors')
 app.use(exampleMiddleware)
 
+// importar recursos estaticos (imagenes)
+app.use('/images', express.static('images'))
+
+// solucionar problemas de CORS
 app.use(cors())
 
 app.use(express.json())
-
-const users = []
 
 app.get('/', (request, response) => {
   response.send('<h1>HI IFROJAS DEV!!!</h1>')
@@ -44,6 +48,30 @@ app.get('/api/users/:id', (request, response, next) => {
     } else {
       response.status(404).json({
         error: 'Elemento no encontrado'
+      })
+    }
+  }).catch(err => {
+    next(err)
+  })
+})
+
+app.put('/api/users/:id', (request, response, next) => {
+  const { id } = request.params
+  const user = request.body
+
+  const newUserInfo = {
+    user: user.user,
+    password: user.password,
+    name: user.name,
+    surname: user.surname
+  }
+
+  User.findByIdAndUpdate(id, newUserInfo, { new: true }).then(updateUser => {
+    if (updateUser) {
+      response.status(202).json(updateUser)
+    } else {
+      response.status(404).json({
+        error: 'Usuario no encontrado'
       })
     }
   }).catch(err => {
@@ -93,24 +121,9 @@ app.post('/api/users', (request, response) => {
 })
 
 // Middleware control error
-app.use((error, request, response, next) => {
-  console.log(error)
-  if (error.name === 'CastError') {
-    response.status(400).json({
-      error: 'elemento con formato no valido'
-    })
-  } else {
-    response.status(400).json({
-      error: 'Error de datos'
-    })
-  }
-})
+app.use(handleErrors)
 
-app.use((request, response) => {
-  response.status(404).json({
-    error: 'Ruta no valida'
-  })
-})
+app.use(notFound)
 
 const PORT = process.env.PORT
 app.listen(PORT, () => {
